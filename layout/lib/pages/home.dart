@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:layout/pages/detail.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
 
 class HomePage extends StatefulWidget {
   //const HomePage({ Key? key }) : super(key: key);
@@ -20,16 +22,17 @@ class _HomePageState extends State<HomePage> {
       body: Padding(
         padding: const EdgeInsets.all(20), // ใส่ระยะห่างจากขอบจอ
         child: FutureBuilder(
-          builder: (context, snapshot) {
-            var data = json.decode(snapshot.data.toString()); // คลาส json (ประกาศ import 'dart:convert' ด้วย) --> [{..., ..., ...}, {}, ..., {}]
+          builder: (context, AsyncSnapshot snapshot) {
+            // var data = json.decode(snapshot.data.toString()); // คลาส json (ประกาศ import 'dart:convert' ด้วย) --> [{..., ..., ...}, {}, ..., {}]
             return ListView.builder(
               itemBuilder: (BuildContext context, int index) {
-                return MyBox(data[index]['title'], data[index]['subtitle'], data[index]['image_url'], data[index]['detail']);
+                return MyBox(snapshot.data[index]['title'], snapshot.data[index]['subtitle'], snapshot.data[index]['image_url'], snapshot.data[index]['detail']);
               },
-              itemCount: data.length,
+              itemCount: snapshot.data.length,
             );
           },
-          future: DefaultAssetBundle.of(context).loadString('assets/data.json'), // รอการประมวลข้อมูล
+          // future: DefaultAssetBundle.of(context).loadString('assets/data.json'), // รอการประมวลข้อมูล --> อ่านจากเครื่อง EP.9
+          future: getData(), // รอการประมวลข้อมูล --> ดึงข้อมูลจากเว็บไซต์ EP.10
         ),
       ),
     );
@@ -101,4 +104,12 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   } 
+
+  Future getData() async {
+    // https://raw.githubusercontent.com/pattama39/FlutterAPI/main/data.json
+    var url = Uri.https('raw.githubusercontent.com', '/pattama39/FlutterAPI/main/data.json');
+    var response = await http.get(url);
+    var result = json.decode(response.body);
+    return result;
+  }
 }
